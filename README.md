@@ -334,6 +334,14 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     Well that didn't work. So what happend?
 
     When we updated our application to use Java 21 and Jakarta, we were unawares that our depedency on `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT` was in itself depedent on `javax.xml`, introducing a [transative dependency for our application](https://en.wikipedia.org/wiki/Transitive_dependency). So next we will see several ways of how to deal with this.
+6.  Switch to back to the root of the proejct
+    ```bash
+    cd ..
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cd ..
+    ```
 
 ## Updating the Depedency Library (Strongly Recommended)
 
@@ -376,9 +384,116 @@ There are some caveats to be noted, if the XSD is poorly formed you may run in t
 
 Between Java 8 and Java 21, that "internal" parser received years of bug fixes, performance tweaks, and specification compliance corrections. If the legacy Java 8 clients have inadvertently relied on a parsing bug, a lenient edge-case, or an unspecified behavior in the older Xerces engine, that behavior might be "fixed" (and thus broken for the specific use case) in Java 21.
 
+## Generating the XSD Objects
+
+![simple-xsd-app-regenerate-xsd](./images/simple-xsd-app-regenerate-xsd.png)
+
+We can use a chain of Maven plugins to generate new Java objects from our XSD definitions, if that is the only portion of the dependency we are concerned with.This is far cleaner as compared to the bytecode manipulation we will explore next. The version of the JAXB runtime your generation plugin uses dictates the namespace of the generated classes. 
+
+This approach provides several advantages:
+
+*   Single Source of Truth for Data Contracts: Because the library defines organizational XSDs, this is the biggest win. You maintain exactly one Git branch and one set of source code. A single XSD update automatically satisfies both the legacy Java 8 systems and the modern Java 21 platforms simultaneously.
+*   Zero Dual Maintenance: You avoid the "Tip and Tail" tax. Your teams do not have to backport security patches, sync branches, or manage complex merge strategies across different release trains. You write the code once.
+*   Transparent to Legacy Consumers: The Java 8 applications remain completely unaware of the transformation. Their builds, runtimes, and dependencies are completely untouched, ensuring absolute stability for older systems.
+*   Zero Reflection Blindspots: Because the classes are compiled cleanly against the modern namespace from the ground up, there is no risk of a missed string literal or a failed dynamic Class.forName() call crashing your application at runtime.
+*   Clean Transitive Dependencies: You do not have to fight Maven dependency trees. The generated code natively imports the jakarta API, so the resulting POM is perfectly clean. You won't need to litter your downstream applications with `<exclude>` tags to filter out legacy javax JARs.
+*   Future-Proofing: Upgrading to Java 21 and Jakarta EE 10 is not the end of the line. When Jakarta EE 11 or 12 introduces new features, bumping the jaxb2-maven-plugin version is a simple, standard upgrade path.
+
+But we are left with several disadvtanges:
+
+*   Loss of Custom Library Logic: If the upstream legacy JAR contains only raw XJC-generated DTOs, client-side generation is perfect. But if the upstream library includes custom `XmlAdapter` classes, manual validation logic, or convenience wrapper methods written by your developers, you lose all of it. By consuming only the raw XSDs, you only get the base generated classes.
+*   Build-Time Overhead: Compilation of the XSDs adds time to the DevSecOps pipeline builds. While usually minimal for XSD compilation, it can be more depending upon the complexity of the schema.
+*   Decentralized Build Configuration: You are pushing the responsibility of code generation to the consuming teams. If you have 20 microservices that need these data contracts, you now have 20 different `pom.xml` files managing XJC executions.
+
+It's assumed you already ran through [The Application as "Origionally" Written](#the-application-as-origionally-written-simple-xsd-app-java8) section to build the `example-endpoint-definition` dependency with Java 8.
+
+1.  Change directory to `simple-xsd-app-regenerate-xsd`
+    ```bash
+    cd simple-xsd-app-regenerate-xsd/
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-regenerate-xsd/
+    ```
+2.  Our `App.java` is identical to the prior naïve migration attempt, save for a comment.
+    ```bash
+    diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
+    34,36d33
+    <             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
+    < 
+    <             // Wrap it in a formerly javax.xml.bind, now jakarta.xml.bind JAXBElement using the ObjectFactory
+    38a36,39
+    >             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
+    > 
+    >             // Notice we initialize the context with the ObjectFactory class now, 
+    >             //      since TrainType doesn't have an @XmlRootElement annotation.
+    ```
+3.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+4.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+5.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+6.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+6.  Switch to back to the root of the proejct
+    ```bash
+    cd ..
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ cd ..
+    ```
+
 ## Using the Eclipse Transformer Plugin to Transform Bytecode
 
 ![simple-xsd-app-eclipse-transformer](./images/simple-xsd-app-eclipse-transformer.png)
+
+Instead of changing the `App.java` code to accommodate the legacy library, we can intercept the library during the build process and rewrite its compiled bytecode from `javax.xml.*` to `jakarta.xml.*`.
+
+This is a standard architectural approach for modernizing legacy dependencies, particularly when targeting a modern runtime like Quarkus. You do this using the Eclipse Transformer Maven Plugin.
+
+It does have it's advtanges:
+*   Single Source of Truth for Data Contracts: Because the library defines organizational XSDs, this is the biggest win. You maintain exactly one Git branch and one set of source code. A single XSD update automatically satisfies both the legacy Java 8 systems and the modern Java 21 platforms simultaneously.
+*   Zero Dual Maintenance: You avoid the "Tip and Tail" tax. Your teams do not have to backport security patches, sync branches, or manage complex merge strategies across different release trains. You write the code once.
+*   Transparent to Legacy Consumers: The Java 8 applications remain completely unaware of the transformation. Their builds, runtimes, and dependencies are completely untouched, ensuring absolute stability for older systems.
+*   Ecosystem Tooling Support: The Eclipse Transformer is the official tool built by the Eclipse Foundation specifically for the Java EE to Jakarta EE migration. It is mature, heavily tested against complex enterprise libraries, and integrates seamlessly into automated CI/CD pipelines.
+
+While this has several advantage is does present key disadvantages:
+*   "Black Box" Debugging Penalty: This is the most severe operational risk. The code running in your modern OpenShift production environments (using jakarta) is not the code sitting in your Git repository (using javax). If a production exception is thrown in the transformed library, developers stepping through the source code in their IDE will see javax imports, but the JVM will be executing jakarta. This causes immense cognitive dissonance and slows down incident resolution.
+*   The Reflection Blindspot: The transformer is a static bytecode manipulator. It easily translates direct class references, method signatures, and field declarations. However, if the legacy library relies heavily on dynamic reflection or hardcoded string literals (e.g., `Class.forName("javax.xml.bind.JAXBContext")`), the transformer might miss it. This results in the code compiling perfectly, only to throw a ClassNotFoundException at runtime.
+*   Build-Time Overhead: Bytecode analysis and rewriting add time to your DevSecOps pipeline builds. While usually measured in seconds for a single library, this can compound if the transformer is used extensively across a massive monolithic repository.
+*   Transitive Dependency Management: The transformer rewrites the bytecode, but it does not automatically rewrite the original Maven pom.xml dependency tree. If your Quarkus app pulls in the transformed JAR, Maven will still try to download `javax.xml.*` based on the library's original POM. You must explicitly `<exclude>` the legacy dependencies in your consuming applications to prevent classpath pollution.
+*   Decentralized Build Configuration: You are pushing the responsibility of code generation to the consuming teams. If you have 20 microservices that need these data contracts, you now have 20 different `pom.xml` files managing XJC executions.
+
 
 It's assumed you already ran through [The Application as "Origionally" Written](#the-application-as-origionally-written-simple-xsd-app-java8) section to build the `example-endpoint-definition` dependency with Java 8.
 
@@ -578,73 +693,13 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     [INFO] Finished at: 2026-06-29T13:24:47-04:00
     [INFO] ------------------------------------------------------------------------
     ```
-    While this has several advantage is does present key disadvantages:
-    *   "Black Box" Debugging Penalty: This is the most severe operational risk. The code running in your modern OpenShift production environments (using jakarta) is not the code sitting in your Git repository (using javax). If a production exception is thrown in the transformed library, developers stepping through the source code in their IDE will see javax imports, but the JVM will be executing jakarta. This causes immense cognitive dissonance and slows down incident resolution.
-    *   The Reflection Blindspot: The transformer is a static bytecode manipulator. It easily translates direct class references, method signatures, and field declarations. However, if the legacy library relies heavily on dynamic reflection or hardcoded string literals (e.g., `Class.forName("javax.xml.bind.JAXBContext")`), the transformer might miss it. This results in the code compiling perfectly, only to throw a ClassNotFoundException at runtime.
-    *   Build-Time Overhead: Bytecode analysis and rewriting add time to your DevSecOps pipeline builds. While usually measured in seconds for a single library, this can compound if the transformer is used extensively across a massive monolithic repository.
-    *   Transitive Dependency Management: The transformer rewrites the bytecode, but it does not automatically rewrite the original Maven pom.xml dependency tree. If your Quarkus app pulls in the transformed JAR, Maven will still try to download `javax.xml.*` based on the library's original POM. You must explicitly `<exclude>` the legacy dependencies in your consuming applications to prevent classpath pollution.
-
-## Generating the XSD Objects
-
-![simple-xsd-app-regenerate-xsd](./images/simple-xsd-app-regenerate-xsd.png)
-
-It's assumed you already ran through [The Application as "Origionally" Written](#the-application-as-origionally-written-simple-xsd-app-java8) section to build the `example-endpoint-definition` dependency with Java 8.
-
-1.  Change directory to ``
+5.  Switch to back to the root of the proejct
     ```bash
-    
+    cd ..
     ```
     Example output:
     ```bash
-    
-    ```
-2.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-3.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-4.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-5.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-6.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-7.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ cd ..
     ```
 
 ## Running Both Javax.xml and Jakarta.xml in Parallel ("Bridge" Architecture)
@@ -905,6 +960,14 @@ Stepping through this it's assumed you already ran through [The Application as "
     [INFO] Total time:  1.267 s
     [INFO] Finished at: 2026-06-29T13:09:10-04:00
     [INFO] ------------------------------------------------------------------------
+    ```
+6.  Switch to back to the root of the proejct
+    ```bash
+    cd ..
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cd ..
     ```
 
 ## Conclusions
