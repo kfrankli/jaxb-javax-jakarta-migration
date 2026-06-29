@@ -332,7 +332,48 @@ Having demonstrated how the app origionally worked, we're going to attempt to na
     ```
     Well that didn't work. So what happend?
 
-    When we updated our application to use Java 21 and Jakarta, we were unawares that our depedency on `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT` was in itself depedent on `javax.xml`, introducing a [transative dependency for our application](https://en.wikipedia.org/wiki/Transitive_dependency). So next we will see how to deal with this.
+    When we updated our application to use Java 21 and Jakarta, we were unawares that our depedency on `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT` was in itself depedent on `javax.xml`, introducing a [transative dependency for our application](https://en.wikipedia.org/wiki/Transitive_dependency). So next we will see several ways of how to deal with this.
+
+## Updating the Depedency Library (Strongly Recommended)
+
+![Updating the Depedency Library](./images/simple-xsd-app-update-lib.png)
+
+The ideal, preferable, and arguably correct choice is for us to update the endpoint definition project, `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT`, that is our dependency. If we have the circumstance where this dependency needs to support both legacy Java 1.8 apps and Java 21 applications, we will need to publish two variants of this depedency. This can be done in several ways, note this list isn't exhaustive. 
+
+This is recommended because owning the XSDs means you can solve namespace collision at the root rather than patching it downstream, and pushing significant technical debt to the consumers of the library.
+
+### JEP14: Tip & Tail Model
+
+OpenJDP recommends adopting [JEP 14: The Tip & Tail Model of Library Development](https://openjdk.org/jeps/14). It was written specifically to address the type of ecosystem fracture this repository is dealing with. It formally urges the Java ecosystem to abandon the "one-size-fits-all" release model in favor of splitting release trains.
+
+Instead of compiling Java 1.8 code and trying to dynamically rewrite it for Java 21, you maintain two distinct release trains in your Git repository:
+
+* The Tip (e.g., Version 2.0.0+): This branch moves entirely to Java 21 and the `jakarta.xml.*` namespace. All new XSD schemas, feature enhancements, and active development happen strictly here. Your Quarkus applications consume the Tip.
+* The Tail (e.g., Version 1.0.x): This branch remains locked to Java 8 and `javax.xml.*`. It is placed in strict maintenance mode. It receives only critical bug fixes and security patches. Your legacy applications consume the Tail.  
+
+### Build Once, Puiblish Twice
+
+Since Java 8 and `javax.xml.*` represent the lowest common denominator, you keep the library's source code exactly as it is. Instead of duplicating the repository or managing parallel branches, you modify the DevSecOps pipeline to generate a second, modernized JAR during the Maven build phase. This work would best resemble the work outline in the `simple-xsd-app-eclipse-transformer` but applied to the `example-endpoint-defition`.
+
+### A Note of Parasing Between Differing Versions of Java
+
+The raison d'être for the cration of JAXB and JAX-WS was to allow the ability to specify a implimentation independent means of exporting objects through marshalling to XML and then consuming the XML through unmarshalling. E.g. our `com.northpolesouthern.TrainType` is marshalled into the following XML object:
+
+```xml
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Train xmlns="http://northpolesouthern.com">
+        <id>1045</id>
+        <origin>Chicago</origin>
+        <destination>Seattle</destination>
+        <axles>44</axles>
+    </Train>
+```
+
+In fact part of the reason for this is to allow non-java producers and consumters to communicate with Java applications through REST or SOAP by using XML as defined by the XSD.
+
+There are some caveats to be noted, if the XSD is poorly formed you may run in to behavioral differences due to flaws in the XSD specfication. The `javax.xml.validation` package is simply an API wrapper. Under the hood, the JDK uses an internal fork of the [Apache Xerces parser](https://xerces.apache.org/).
+
+Between Java 8 and Java 21, that "internal" parser received years of bug fixes, performance tweaks, and specification compliance corrections. If the legacy Java 8 clients have inadvertently relied on a parsing bug, a lenient edge-case, or an unspecified behavior in the older Xerces engine, that behavior might be "fixed" (and thus broken for the specific use case) in Java 21.
 
 # TODO below
 
@@ -401,7 +442,7 @@ Having demonstrated how the app origionally worked, we're going to attempt to na
 
 
 
-![simple-xsd-app-update-lib](./images/simple-xsd-app-update-lib.png)
+
 
 ![simple-xsd-app-eclipse-transformer](./images/simple-xsd-app-eclipse-transformer.png)
 
