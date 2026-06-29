@@ -1,3 +1,10 @@
+# Jaxb, Jakarta, and the Challenge of Transitive Dependencies
+
+> [!NOTE]
+> TL;DR When faced with the complexities of transative dependencies on older Java libraries such javax.xml.* failing when calling from Java 11+ runtimes, the optimal solution is to update the dependency itself.
+
+
+
 ![simple-xsd-app-java8 png](./images/simple-xsd-app-java8.png)
 
 ![simple-xsd-app-naive-fail.png](./images/simple-xsd-app-naive-fail.png)
