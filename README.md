@@ -395,7 +395,7 @@ Because Java 21 completely removed the native JAXB implementation, you can manua
 
 ## Conclusions
 
-Dealing with transitive dependencies due to the changes from `javax` to `jakarta` that crop up in mirating from Java 8 to 21 can be thorny. But for all the aofrementioned reasons, ideally updating the [libary depdency itself](# updating the depedency library strongly recommended).
+Dealing with transitive dependencies due to the changes from `javax` to `jakarta` that crop up in mirating from Java 8 to 21 can be thorny. But for all the aofrementioned reasons, ideally updating the [libary depdency itself](#updating-the-depedency-library-strongly-recommended).
 
 
 # TODO below
