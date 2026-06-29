@@ -375,6 +375,29 @@ There are some caveats to be noted, if the XSD is poorly formed you may run in t
 
 Between Java 8 and Java 21, that "internal" parser received years of bug fixes, performance tweaks, and specification compliance corrections. If the legacy Java 8 clients have inadvertently relied on a parsing bug, a lenient edge-case, or an unspecified behavior in the older Xerces engine, that behavior might be "fixed" (and thus broken for the specific use case) in Java 21.
 
+## Using the Eclipse Transformer Plugin
+
+![simple-xsd-app-eclipse-transformer](./images/simple-xsd-app-eclipse-transformer.png)
+
+
+## Generating the XSD Objects
+
+![simple-xsd-app-regenerate-xsd](./images/simple-xsd-app-regenerate-xsd.png)
+
+## Running Both Javax.xml and Jakarta.xml in Parallel ("Bridge" Architecture)
+
+![simple-xsd-app-bridge-arch](./images/simple-xsd-app-bridge-arch.png)
+
+Because Java 21 completely removed the native JAXB implementation, you can manually force both the legacy javax and modern jakarta standalone runtimes to coexist in your classpath. The application code will use Jakarta, while the legacy code continues using Javax.
+
+
+
+
+## Conclusions
+
+Dealing with transitive dependencies due to the changes from `javax` to `jakarta` that crop up in mirating from Java 8 to 21 can be thorny. But for all the aofrementioned reasons, ideally updating the [libary depdency itself](# updating the depedency library strongly recommended).
+
+
 # TODO below
 
 
@@ -436,7 +459,6 @@ Between Java 8 and Java 21, that "internal" parser received years of bug fixes, 
     
     ```
 
-## Conclusions
 
 
 
@@ -444,23 +466,6 @@ Between Java 8 and Java 21, that "internal" parser received years of bug fixes, 
 
 
 
-![simple-xsd-app-eclipse-transformer](./images/simple-xsd-app-eclipse-transformer.png)
-
-![simple-xsd-app-regenerate-xsd](./images/simple-xsd-app-regenerate-xsd.png)
-
-![simple-xsd-app-bridge-arch](./images/simple-xsd-app-bridge-arch.png)
-
-
-
-
-
-
-| Folder Name                          | Methodology | Advantages | Disadvantages |
-|--------------------------------------|-------------|------------|---------------|
-| `simple-xsd-app-naive-migrate`          | Simply modifying our application to use Java 21, and watch it fail due to our dependency on `com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT` | n/a | n/a |
-| `simple-xsd-app-eclipse-transformer` | Perform bytecode transformation via `transformer-maven-plugin` | lorem | lorem |
-| `simple-xsd-app-regenerate-xsd`      | Perform recompilation of `xsd` files at build time via `maven-dependency-plugin` and `jaxb-maven-plugin` to pull the `com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT` dependency, and recompile the xsd files | lorem | lorem |
-| `simple-xsd-app-bridge-arch` | Load both the `jakarta` and `javax` implementations into the classpath | lorem | lorem |
 
 
 
