@@ -14,18 +14,18 @@ public class App {
         try {
             com.northpolesouthern.ObjectFactory factory = new com.northpolesouthern.ObjectFactory();
             
-            // 1. Create the raw data object (now called TrainType)
+            // Create the raw data object (now called TrainType)
             com.northpolesouthern.TrainType myTrainData = factory.createTrainType();
             myTrainData.setId(1045);
             myTrainData.setOrigin("Chicago");
             myTrainData.setDestination("Seattle");
             myTrainData.setAxles(44);
 
-            // 2. Wrap it in a JAXBElement using the ObjectFactory
+            // Wrap it in a javax.xml.bind JAXBElement using the ObjectFactory
             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
 
             // Notice we initialize the context with the ObjectFactory class now, 
-            // since TrainType doesn't have an @XmlRootElement annotation.
+            //      since TrainType doesn't have an @XmlRootElement annotation.
             JAXBContext jaxbContext = JAXBContext.newInstance(com.northpolesouthern.ObjectFactory.class);
 
             // --- Marshalling ---

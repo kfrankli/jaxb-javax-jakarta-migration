@@ -17,14 +17,14 @@ public class App {
         try {
             com.northpolesouthern.ObjectFactory factory = new com.northpolesouthern.ObjectFactory();
             
-            // 1. Create the raw data object (TrainType)
+            // Create the raw data object (now called TrainType)
             com.northpolesouthern.TrainType myTrainData = factory.createTrainType();
             myTrainData.setId(1045);
             myTrainData.setOrigin("Chicago");
             myTrainData.setDestination("Seattle");
             myTrainData.setAxles(44);
 
-            // 2. Receive the legacy object from the factory
+            // Receive the legacy object from the factory
             javax.xml.bind.JAXBElement<com.northpolesouthern.TrainType> legacyElem = factory.createTrain(myTrainData);
 
             // --- Marshalling (Using Legacy Javax Context) ---
@@ -49,15 +49,15 @@ public class App {
             // --- Unmarshalling (Using Modern Jakarta Context) ---
             System.out.println("--- Unmarshalling (XML to Java) ---");
 
-            // 1. Set up the modern Jakarta context
+            // Set up the modern Jakarta context
             jakarta.xml.bind.JAXBContext jakartaContext = jakarta.xml.bind.JAXBContext.newInstance(com.northpolesouthern.TrainType.class);
             jakarta.xml.bind.Unmarshaller unmarshaller = jakartaContext.createUnmarshaller();
 
-            // 2. Create the raw XML readers
+            // Create the raw XML readers
             StringReader xmlReader = new StringReader(xmlOutput);
             org.xml.sax.InputSource inputSource = new org.xml.sax.InputSource(xmlReader);
 
-            // 3. ✅ THE FIX: Create a SAX filter that ignores the legacy XML namespace
+            // Create a SAX filter that ignores the legacy XML namespace (This is where things get even trickier)
             org.xml.sax.helpers.XMLFilterImpl namespaceFilter = new org.xml.sax.helpers.XMLFilterImpl() {
                 @Override
                 public void startElement(String uri, String localName, String qName, org.xml.sax.Attributes atts) throws org.xml.sax.SAXException {
@@ -66,7 +66,7 @@ public class App {
                 }
             };
 
-            // 4. Connect the filter to a SAX reader engine
+            // Connect the filter to a SAX reader engine
             javax.xml.transform.sax.SAXSource saxSource = new javax.xml.transform.sax.SAXSource(
                 org.xml.sax.helpers.XMLReaderFactory.createXMLReader(), 
                 inputSource
@@ -74,11 +74,11 @@ public class App {
             namespaceFilter.setParent(saxSource.getXMLReader());
             saxSource.setXMLReader(namespaceFilter);
 
-            // 5. Unmarshal using the filtered SAXSource directly into the TrainType wrapper
+            // Unmarshal using the filtered SAXSource directly into the TrainType wrapper
             jakarta.xml.bind.JAXBElement<com.northpolesouthern.TrainType> unmarshalledElement = 
                 unmarshaller.unmarshal(saxSource, com.northpolesouthern.TrainType.class);
 
-            // 6. Extract the underlying TrainType data payload
+            // Extract the underlying TrainType data payload
             com.northpolesouthern.TrainType parsedTrain = unmarshalledElement.getValue();
             
             System.out.println("Successfully parsed XML back into Java:");

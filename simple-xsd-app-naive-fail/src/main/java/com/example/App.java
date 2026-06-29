@@ -1,11 +1,20 @@
 package com.example;
 
+// Swap javax to jakarta
+//import javax.xml.bind.JAXBContext;
+//import javax.xml.bind.JAXBElement;
+//import javax.xml.bind.JAXBException;
+//import javax.xml.bind.Marshaller;
+//import javax.xml.bind.Unmarshaller;
+//import javax.xml.transform.stream.StreamSource;
+
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -14,18 +23,20 @@ public class App {
         try {
             com.northpolesouthern.ObjectFactory factory = new com.northpolesouthern.ObjectFactory();
             
-            // 1. Create the raw data object (now called TrainType)
+            // Create the raw data object (now called TrainType)
             com.northpolesouthern.TrainType myTrainData = factory.createTrainType();
             myTrainData.setId(1045);
             myTrainData.setOrigin("Chicago");
             myTrainData.setDestination("Seattle");
             myTrainData.setAxles(44);
 
-            // 2. Wrap it in a JAXBElement using the ObjectFactory
+            // Wrap it in a formerly javax.xml.bind, now jakarta.xml.bind JAXBElement using the ObjectFactory
+            //      but this is going to fail due to the transative dependency on javax.xml.bind that isn't available 
+            //      from java 11+
             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
 
             // Notice we initialize the context with the ObjectFactory class now, 
-            // since TrainType doesn't have an @XmlRootElement annotation.
+            //      since TrainType doesn't have an @XmlRootElement annotation.
             JAXBContext jaxbContext = JAXBContext.newInstance(com.northpolesouthern.ObjectFactory.class);
 
             // --- Marshalling ---
