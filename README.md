@@ -1134,18 +1134,3 @@ Stepping through this it's assumed you already ran through [The Application as "
 ## Conclusions
 
 Dealing with transitive dependencies due to the changes from `javax` to `jakarta` that crop up in mirating from Java 8 to 21 can be thorny. But for all the aofrementioned reasons, ideally [updating the libary depdency itself](#updating-the-depedency-library-strongly-recommended).
-
-
-# TODO below
-
-
-
-
-
-
-
-# For simple-xsd-app-eclise-transformer
-
-We need to *remove* the direct dependency
-
-Add maven-dependency-plugin to unpack and then transform the classes to Jakarta
