@@ -1,3 +1,16 @@
+![simple-xsd-app-java8 png](./images/simple-xsd-app-java8.png)
+
+![simple-xsd-app-naive-fail.png](./images/simple-xsd-app-naive-fail.png)
+
+![simple-xsd-app-update-lib.png](./images/simple-xsd-app-update-lib.png)
+
+![simple-xsd-app-eclipse-transformer.png](./images/simple-xsd-app-eclipse-transformer.png)
+
+![simple-xsd-app-regenerate-xsd.png](./images/simple-xsd-app-regenerate-xsd.png)
+
+![simple-xsd-app-bridge-arch.png](./images/simple-xsd-app-bridge-arch.png)
+
+
 | Folder Name                          | Methodology | Advantages | Disadvantages |
 |--------------------------------------|-------------|------------|---------------|
 | `simple-xsd-app-naive-fail`          | Simply modifying our application to use Java 21, and watch it fail due to our dependency on `com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT` | n/a | n/a |
