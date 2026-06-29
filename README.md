@@ -415,7 +415,18 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```bash
     kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-regenerate-xsd/
     ```
-2.  Our `App.java` is identical to the prior naïve migration attempt, save for a comment.
+2.  Now change your Java runtime to Java 21 and double check it.
+    ```bash
+    $ java -version
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
+    openjdk version "21.0.2" 2024-01-16
+    OpenJDK Runtime Environment (build 21.0.2+13-58)
+    OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
+    ```
+3.  Our `App.java` is identical to the prior naïve migration attempt, save for a comment.
     ```bash
     diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
     ```
@@ -432,37 +443,176 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     >             // Notice we initialize the context with the ObjectFactory class now, 
     >             //      since TrainType doesn't have an @XmlRootElement annotation.
     ```
-3.  Lorem Ipsum
+4.  The difference is in our `pom.xml`
     ```bash
-    
+    cat pom.xml 
     ```
     Example output:
     ```bash
-    
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ cat pom.xml 
+    <?xml version="1.0" encoding="UTF-8"?>
+    <project xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+
+        <groupId>com.example</groupId>
+        <artifactId>simple-xsd-app</artifactId>
+        <version>1.0-SNAPSHOT</version>
+
+        <properties>
+            <maven.compiler.source>21</maven.compiler.source>
+            <maven.compiler.target>21</maven.compiler.target>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        </properties>
+
+        <dependencies>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>4.0.3</version>
+                <scope>runtime</scope>
+            </dependency>
+        </dependencies>
+
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.6.0</version>
+                    <executions>
+                        <execution>
+                            <id>unpack-xsd</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>com.northpolesouthern</groupId>
+                                        <artifactId>example-endpoint-definition</artifactId>
+                                        <version>1.0-SNAPSHOT</version>
+                                        <type>jar</type>
+                                        <includes>schema/**/*.xsd</includes>
+                                        <outputDirectory>${project.build.directory}/extracted-schema</outputDirectory>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jvnet.jaxb</groupId>
+                    <artifactId>jaxb-maven-plugin</artifactId>
+                    <version>4.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>xjc</id>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <schemaDirectory>${project.build.directory}/extracted-schema/schema</schemaDirectory>
+                        <generateDirectory>${project.build.directory}/generated-sources/jaxb</generateDirectory>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <mainClass>com.example.App</mainClass>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </project>
     ```
-4.  Lorem Ipsum
+    In our `<dependencies>` section we have removed our dependency on `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT`. 
+
+    We have also added two new plugins to the `build` phase. Namely the `org.apache.maven.plugins:maven-dependency-plugin:3.6.0` and `org.jvnet.jaxb:jaxb-maven-plugin:4.0.0`.
+
+    `org.apache.maven.plugins:maven-dependency-plugin:3.6.0` pulls the `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT` depedency, and then unpacks the jar. The unpacked files, including the XSD are then consumed by the `org.jvnet.jaxb:jaxb-maven-plugin:4.0.0` plugin which then compiles the XSD files into their representative Java objects. This in effect removes the transitive dependency on `javax`.
+5.  At this point we can successfully build and run.
     ```bash
-    
+    mvn clean install exec:java
     ```
     Example output:
     ```bash
-    
-    ```
-5.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-6.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ mvn clean install exec:java
+    [INFO] Scanning for projects...
+    Downloading from central: https://repo.maven.apache.org/maven2/org/jvnet/jaxb/maven-metadata.xml
+    Downloaded from central: https://repo.maven.apache.org/maven2/org/jvnet/jaxb/maven-metadata.xml (426 B at 1.8 kB/s)
+    [INFO] 
+    [INFO] ---------------------< com.example:simple-xsd-app >---------------------
+    [INFO] Building simple-xsd-app 1.0-SNAPSHOT
+    [INFO]   from pom.xml
+    [INFO] --------------------------------[ jar ]---------------------------------
+    [INFO] 
+    [INFO] --- clean:3.2.0:clean (default-clean) @ simple-xsd-app ---
+    [INFO] Deleting /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/target
+    [INFO] 
+    [INFO] --- dependency:3.6.0:unpack (unpack-xsd) @ simple-xsd-app ---
+    [INFO] Configured Artifact: com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT:jar
+    [INFO] 
+    [INFO] --- jaxb:4.0.0:generate (xjc) @ simple-xsd-app ---
+    [INFO] Sources are not up-to-date, XJC will be executed.
+    [INFO] Episode file [/home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/target/generated-sources/jaxb/META-INF/sun-jaxb.episode] was augmented with if-exists="true" attributes.
+    [INFO] 
+    [INFO] --- resources:3.3.1:resources (default-resources) @ simple-xsd-app ---
+    [INFO] skip non existing resourceDirectory /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/src/main/resources
+    [INFO] Copying 1 resource from target/generated-sources/jaxb to target/classes
+    [INFO] 
+    [INFO] --- compiler:3.13.0:compile (default-compile) @ simple-xsd-app ---
+    [INFO] Recompiling the module because of changed source code.
+    [INFO] Compiling 4 source files with javac [debug target 21] to target/classes
+    [INFO] 
+    [INFO] --- resources:3.3.1:testResources (default-testResources) @ simple-xsd-app ---
+    [INFO] skip non existing resourceDirectory /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/src/test/resources
+    [INFO] 
+    [INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ simple-xsd-app ---
+    [INFO] No sources to compile
+    [INFO] 
+    [INFO] --- surefire:3.2.5:test (default-test) @ simple-xsd-app ---
+    [INFO] No tests to run.
+    [INFO] 
+    [INFO] --- jar:3.4.1:jar (default-jar) @ simple-xsd-app ---
+    [INFO] Building jar: /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/target/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- install:3.1.2:install (default-install) @ simple-xsd-app ---
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/pom.xml to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.pom
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd/target/simple-xsd-app-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- exec:3.1.0:java (default-cli) @ simple-xsd-app ---
+    --- Marshalling (Java to XML) ---
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Train xmlns="http://northpolesouthern.com">
+        <id>1045</id>
+        <origin>Chicago</origin>
+        <destination>Seattle</destination>
+        <axles>44</axles>
+    </Train>
+
+    --- Unmarshalling (XML to Java) ---
+    Successfully parsed XML back into Java:
+    Train ID : 1045
+    Route    : Chicago -> Seattle
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  2.512 s
+    [INFO] Finished at: 2026-06-29T14:27:38-04:00
+    [INFO] ------------------------------------------------------------------------
     ```
 6.  Switch to back to the root of the proejct
     ```bash
@@ -505,7 +655,18 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```bash
     kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-eclipse-transformer
     ```
-2.  Our `App.java` is identical to the prior naïve migration attempt, save for a comment.
+2.  Now change your Java runtime to Java 21 and double check it.
+    ```bash
+    $ java -version
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ java -version
+    openjdk version "21.0.2" 2024-01-16
+    OpenJDK Runtime Environment (build 21.0.2+13-58)
+    OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
+    ```
+3.  Our `App.java` is identical to the prior naïve migration attempt, save for a comment.
     ```bash
     diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
     ```
@@ -522,7 +683,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     >             // Notice we initialize the context with the ObjectFactory class now, 
     >             //      since TrainType doesn't have an @XmlRootElement annotation.
     ```
-3.  The difference is in our `pom.xml`
+4.  The difference is in our `pom.xml`
     ```bash
     cat pom.xml 
     ```
@@ -608,7 +769,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     We have also added two new plugins to the `build` phase. Namely the `org.apache.maven.plugins:maven-dependency-plugin:3.6.0` and `org.eclipse.transformer:transformer-maven-plugin:0.5.0`.
 
     `org.apache.maven.plugins:maven-dependency-plugin:3.6.0` pulls the `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT` depedency, and then unpacks the jar. The unpacked files are then consumed by the `org.eclipse.transformer:transformer-maven-plugin:0.5.0` plugin which performs a transformation and converts all `javax` dependency calls to `jakarta`. This removed the transitive dependency on `javax`.
-4.  At this point we can successfully build and run.
+5.  At this point we can successfully build and run.
     ```bash
     mvn clean install exec:java
     ```
@@ -693,7 +854,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     [INFO] Finished at: 2026-06-29T13:24:47-04:00
     [INFO] ------------------------------------------------------------------------
     ```
-5.  Switch to back to the root of the proejct
+6.  Switch to back to the root of the proejct
     ```bash
     cd ..
     ```
