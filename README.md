@@ -376,17 +376,276 @@ There are some caveats to be noted, if the XSD is poorly formed you may run in t
 
 Between Java 8 and Java 21, that "internal" parser received years of bug fixes, performance tweaks, and specification compliance corrections. If the legacy Java 8 clients have inadvertently relied on a parsing bug, a lenient edge-case, or an unspecified behavior in the older Xerces engine, that behavior might be "fixed" (and thus broken for the specific use case) in Java 21.
 
-## Using the Eclipse Transformer Plugin
+## Using the Eclipse Transformer Plugin to Transform Bytecode
 
 ![simple-xsd-app-eclipse-transformer](./images/simple-xsd-app-eclipse-transformer.png)
 
 It's assumed you already ran through [The Application as "Origionally" Written](#the-application-as-origionally-written-simple-xsd-app-java8) section to build the `example-endpoint-definition` dependency with Java 8.
+
+1.  Change directory to `simple-xsd-app-eclipse-transformer`
+    ```bash
+    cd simple-xsd-app-eclipse-transformer
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-eclipse-transformer
+    ```
+2.  Our `App.java` is identical to the prior naïve migration attempt, save for a comment.
+    ```bash
+    diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
+    34,36d33
+    <             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
+    < 
+    <             // Wrap it in a formerly javax.xml.bind, now jakarta.xml.bind JAXBElement using the ObjectFactory
+    38a36,39
+    >             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
+    > 
+    >             // Notice we initialize the context with the ObjectFactory class now, 
+    >             //      since TrainType doesn't have an @XmlRootElement annotation.
+    ```
+3.  The difference is in our `pom.xml`
+    ```bash
+    cat pom.xml 
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ cat pom.xml 
+    ...
+        <dependencies>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>4.0.3</version>
+                <scope>runtime</scope>
+            </dependency>
+        </dependencies>
+
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.6.0</version>
+                    <executions>
+                        <execution>
+                            <id>unpack-legacy-jar</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>com.northpolesouthern</groupId>
+                                        <artifactId>example-endpoint-definition</artifactId>
+                                        <version>1.0-SNAPSHOT</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.eclipse.transformer</groupId>
+                    <artifactId>transformer-maven-plugin</artifactId>
+                    <version>0.5.0</version>
+                    <executions>
+                        <execution>
+                            <id>transform-classes</id>
+                            <phase>process-sources</phase>
+                            <goals>
+                                <goal>transform</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <jakartaDefaults>true</jakartaDefaults>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <mainClass>com.example.App</mainClass>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </project>
+    ```
+    In our `<dependencies>` section we have removed our dependency on `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT`. 
+
+    We have also added two new plugins to the `build` phase. Namely the `org.apache.maven.plugins:maven-dependency-plugin:3.6.0` and `org.eclipse.transformer:transformer-maven-plugin:0.5.0`.
+
+    `org.apache.maven.plugins:maven-dependency-plugin:3.6.0` pulls the `com.northpolesouthern:example-endpoint-definition:1.-SNAPSHOT` depedency, and then unpacks the jar. The unpacked files are then consumed by the `org.eclipse.transformer:transformer-maven-plugin:0.5.0` plugin which performs a transformation and converts all `javax` dependency calls to `jakarta`. This removed the transitive dependency on `javax`.
+4.  At this point we can successfully build and run.
+    ```bash
+    mvn clean install exec:java
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ mvn clean install exec:java
+    [INFO] Scanning for projects...
+    Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/transformer/maven-metadata.xml
+    Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/transformer/maven-metadata.xml (466 B at 1.4 kB/s)
+    [INFO] 
+    [INFO] ---------------------< com.example:simple-xsd-app >---------------------
+    [INFO] Building simple-xsd-app 1.0-SNAPSHOT
+    [INFO]   from pom.xml
+    [INFO] --------------------------------[ jar ]---------------------------------
+    [INFO] 
+    [INFO] --- clean:3.2.0:clean (default-clean) @ simple-xsd-app ---
+    [INFO] Deleting /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer/target
+    [INFO] 
+    [INFO] --- dependency:3.6.0:unpack (unpack-legacy-jar) @ simple-xsd-app ---
+    [INFO] Configured Artifact: com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT:jar
+    [INFO] 
+    [INFO] --- transformer:0.5.0:transform (transform-classes) @ simple-xsd-app ---
+    [INFO] Properties [ RULES_SELECTIONS ] URL [ jar:file:/home/kfrankli/.m2/repository/org/eclipse/transformer/org.eclipse.transformer.jakarta/0.5.0/org.eclipse.transformer.jakarta-0.5.0.jar!/org/eclipse/transformer/jakarta/jakarta-selection.properties ]
+    ...
+    [INFO] Properties [ RULES_MASTER_TEXT ] URL [ jar:file:/home/kfrankli/.m2/repository/org/eclipse/transformer/org.eclipse.transformer.jakarta/0.5.0/org.eclipse.transformer.jakarta-0.5.0.jar!/org/eclipse/transformer/jakarta/jakarta-text-master.properties ]
+    [INFO] Package renames are in use
+    [INFO] Package versions will be updated
+    [INFO] Bundle identities will be updated
+    [INFO] Properties [ Substitutions matching [ application-client.xml ] ] URL [ jar:file:/home/kfrankli/.m2/repository/org/eclipse/transformer/org.eclipse.transformer.jakarta/0.5.0/org.eclipse.transformer.jakarta-0.5.0.jar!/org/eclipse/transformer/jakarta/jakarta-application-xml.properties ]
+    ...
+    [INFO] Properties [ Substitutions matching [ permissions.xml ] ] URL [ jar:file:/home/kfrankli/.m2/repository/org/eclipse/transformer/org.eclipse.transformer.jakarta/0.5.0/org.eclipse.transformer.jakarta-0.5.0.jar!/org/eclipse/transformer/jakarta/jakarta-renames.properties ]
+    [INFO] Text files will be updated
+    [INFO] Java direct string updates will be performed
+    [INFO] All resources will be selected
+    [INFO] Input  [ transformer:transform@transform-classes ]
+    [INFO] Output [ transformer:transform@transform-classes ]
+    [INFO] [  All Resources ] [      8 ] Unaccepted [      0 ]   Accepted [      8 ]
+    [INFO] [  All Unchanged ] [      5 ]     Failed [      0 ] Duplicated [      0 ]
+    [INFO] [    All Changed ] [      3 ]    Renamed [      0 ]    Content [      3 ]
+    [INFO] 
+    [INFO] --- resources:3.3.1:resources (default-resources) @ simple-xsd-app ---
+    [INFO] skip non existing resourceDirectory /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer/src/main/resources
+    [INFO] 
+    [INFO] --- compiler:3.13.0:compile (default-compile) @ simple-xsd-app ---
+    [INFO] Recompiling the module because of changed source code.
+    [INFO] Compiling 1 source file with javac [debug target 21] to target/classes
+    [INFO] 
+    [INFO] --- resources:3.3.1:testResources (default-testResources) @ simple-xsd-app ---
+    [INFO] skip non existing resourceDirectory /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer/src/test/resources
+    [INFO] 
+    [INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ simple-xsd-app ---
+    [INFO] No sources to compile
+    [INFO] 
+    [INFO] --- surefire:3.2.5:test (default-test) @ simple-xsd-app ---
+    [INFO] No tests to run.
+    [INFO] 
+    [INFO] --- jar:3.4.1:jar (default-jar) @ simple-xsd-app ---
+    [INFO] Building jar: /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer/target/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- install:3.1.2:install (default-install) @ simple-xsd-app ---
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer/pom.xml to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.pom
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer/target/simple-xsd-app-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- exec:3.1.0:java (default-cli) @ simple-xsd-app ---
+    --- Marshalling (Java to XML) ---
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Train xmlns="http://northpolesouthern.com">
+        <id>1045</id>
+        <origin>Chicago</origin>
+        <destination>Seattle</destination>
+        <axles>44</axles>
+    </Train>
+
+    --- Unmarshalling (XML to Java) ---
+    Successfully parsed XML back into Java:
+    Train ID : 1045
+    Route    : Chicago -> Seattle
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  2.231 s
+    [INFO] Finished at: 2026-06-29T13:24:47-04:00
+    [INFO] ------------------------------------------------------------------------
+    ```
+    While this has several advantage is does present key disadvantages:
+    *   "Black Box" Debugging Penalty: This is the most severe operational risk. The code running in your modern OpenShift production environments (using jakarta) is not the code sitting in your Git repository (using javax). If a production exception is thrown in the transformed library, developers stepping through the source code in their IDE will see javax imports, but the JVM will be executing jakarta. This causes immense cognitive dissonance and slows down incident resolution.
+    *   The Reflection Blindspot: The transformer is a static bytecode manipulator. It easily translates direct class references, method signatures, and field declarations. However, if the legacy library relies heavily on dynamic reflection or hardcoded string literals (e.g., `Class.forName("javax.xml.bind.JAXBContext")`), the transformer might miss it. This results in the code compiling perfectly, only to throw a ClassNotFoundException at runtime.
+    *   Build-Time Overhead: Bytecode analysis and rewriting add time to your DevSecOps pipeline builds. While usually measured in seconds for a single library, this can compound if the transformer is used extensively across a massive monolithic repository.
+    *   Transitive Dependency Management: The transformer rewrites the bytecode, but it does not automatically rewrite the original Maven pom.xml dependency tree. If your Quarkus app pulls in the transformed JAR, Maven will still try to download `javax.xml.*` based on the library's original POM. You must explicitly `<exclude>` the legacy dependencies in your consuming applications to prevent classpath pollution.
 
 ## Generating the XSD Objects
 
 ![simple-xsd-app-regenerate-xsd](./images/simple-xsd-app-regenerate-xsd.png)
 
 It's assumed you already ran through [The Application as "Origionally" Written](#the-application-as-origionally-written-simple-xsd-app-java8) section to build the `example-endpoint-definition` dependency with Java 8.
+
+1.  Change directory to ``
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+2.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+3.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+4.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+5.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+6.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
+7.  Lorem Ipsum
+    ```bash
+    
+    ```
+    Example output:
+    ```bash
+    
+    ```
 
 ## Running Both Javax.xml and Jakarta.xml in Parallel ("Bridge" Architecture)
 
@@ -657,62 +916,7 @@ Dealing with transitive dependencies due to the changes from `javax` to `jakarta
 
 
 
-1.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-2.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-3.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-4.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-5.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-6.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
-7.  Lorem Ipsum
-    ```bash
-    
-    ```
-    Example output:
-    ```bash
-    
-    ```
+
 
 
 
