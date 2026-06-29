@@ -1,21 +1,29 @@
 # Jaxb, Jakarta, and the Challenge of Transitive Dependencies
 
+Author: Kevin Franklin
+
 > [!NOTE]
 > **TL;DR** When faced with the complexities of transative dependencies on older Java libraries such javax.xml.* failing when calling from Java 11+ runtimes, the likely optimal solution is to ***update the dependency itself***.
 
+## Overview and Introduction
 
+One of the often difficult to appreciate challenges in upgrading Java is the challenge the various libraries or dependencies your application may use. While you may have done the work of migrating the app itself from Java 8 to 21+, that doesn't resolve the fact the dependencies your application is using may not be ready for Java 21+. This can further lead to a situation in which one of the depedencies of your application is reliant upon a library no longer included in the Java ecosystem. A prime example of this, is the removeal of  the [JAXB (Java Architecture for XML Binding)](https://jcp.org/en/jsr/detail?id=222) and [JAX-WS (Java API for XML-Based Web Services)](https://jcp.org/en/jsr/detail?id=224) in Java 11+ as outlined in [JEP 320: Remove the Java EE and CORBA Modules](https://openjdk.org/jeps/320).
 
-![simple-xsd-app-java8 png](./images/simple-xsd-app-java8.png)
+This repository will use a toy JAXB sample application written in Java 8 to go through the various migration and mitigation paths available in upgrading your dependency from Java 8 to 21.
 
-![simple-xsd-app-naive-migrate.png](./images/simple-xsd-app-naive-migrate.png)
+## The Application as Written (`simple-xsd-app-java8`)
 
-![simple-xsd-app-update-lib.png](./images/simple-xsd-app-update-lib.png)
+![simple-xsd-app-java8](./images/simple-xsd-app-java8.png)
 
-![simple-xsd-app-eclipse-transformer.png](./images/simple-xsd-app-eclipse-transformer.png)
+![simple-xsd-app-naive-migrate](./images/simple-xsd-app-naive-migrate.png)
 
-![simple-xsd-app-regenerate-xsd.png](./images/simple-xsd-app-regenerate-xsd.png)
+![simple-xsd-app-update-lib](./images/simple-xsd-app-update-lib.png)
 
-![simple-xsd-app-bridge-arch.png](./images/simple-xsd-app-bridge-arch.png)
+![simple-xsd-app-eclipse-transformer](./images/simple-xsd-app-eclipse-transformer.png)
+
+![simple-xsd-app-regenerate-xsd](./images/simple-xsd-app-regenerate-xsd.png)
+
+![simple-xsd-app-bridge-arch](./images/simple-xsd-app-bridge-arch.png)
 
 
 | Folder Name                          | Methodology | Advantages | Disadvantages |
