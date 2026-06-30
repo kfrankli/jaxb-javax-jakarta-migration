@@ -1,3 +1,7 @@
+# Maven Flatten Plugin artifacts
+*.flattened-pom.xml
+.pom.xml.flatten
+
 target/
 pom.xml.tag
 pom.xml.releaseBackup
