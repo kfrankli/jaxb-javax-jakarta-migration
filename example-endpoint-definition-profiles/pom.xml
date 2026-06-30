@@ -1,0 +1,123 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.northpolesouthern</groupId>
+    <artifactId>example-endpoint-definition</artifactId>
+    <!-- Maven will dynamically inject the value from the active profile -->
+    <version>${revision}</version>
+
+    <!-- This isnow going to be handled within profiles -->
+    <!--<properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>-->
+
+<profiles>
+        <!-- Java 8 (Legacy) -->
+        <profile>
+            <id>java8</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- Sets the GAV version for this profile -->
+                <revision>1.0-SNAPSHOT</revision>
+                <!-- Sets the java/javac version for this profile -->
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+                <plugin.jaxb.version>2.5.0</plugin.jaxb.version>
+            </properties>
+            <dependencies>
+                <!-- Javax namespace dependencies -->
+                <dependency>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                    <version>2.3.1</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-impl</artifactId>
+                    <version>2.3.3</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <!-- Java 21 (Modernized) -->
+        <profile>
+            <id>java21</id>
+            <properties>
+                <!-- Sets the GAV version for this profile -->
+                <revision>2.0-SNAPSHOT</revision>
+                <!-- Sets the java/javac version for this profile -->
+                <maven.compiler.source>21</maven.compiler.source>
+                <maven.compiler.target>21</maven.compiler.target>
+                <plugin.jaxb.version>4.0.0</plugin.jaxb.version>
+            </properties>
+            <dependencies>
+                <!-- Jakarta namespace dependencies -->
+                <dependency>
+                    <groupId>jakarta.xml.bind</groupId>
+                    <artifactId>jakarta.xml.bind-api</artifactId>
+                    <version>4.0.0</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+		        <version>${plugin.jaxb.version}</version>
+                <executions>
+                    <execution>
+                        <id>xjc</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sources>
+                        <source>src/main/resources/schema</source>
+                    </sources>
+		    <outputDirectory>${project.build.directory}/generated-sources/jaxb</outputDirectory>
+		    <clearOutputDir>false</clearOutputDir>
+                </configuration>
+            </plugin>
+            <!-- 
+              The Flatten plugin is mandatory when using ${revision}. 
+              It ensures that when this artifact is deployed or installed to your 
+              local repository, the generated pom.xml has the actual hardcoded 
+              version (e.g. "2.0-SNAPSHOT") rather than the literal string "${revision}".
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
