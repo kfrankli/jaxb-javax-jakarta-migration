@@ -364,11 +364,206 @@ Instead of compiling Java 1.8 code and trying to dynamically rewrite it for Java
 
 Since Java 8 and `javax.xml.*` represent the lowest common denominator, you keep the library's source code exactly as it is. Instead of duplicating the repository or managing parallel branches, you modify the DevSecOps pipeline to generate a second, modernized JAR during the Maven build phase. This work would best resemble the work outline in the `simple-xsd-app-eclipse-transformer` but applied to the `example-endpoint-defition`.
 
-### A Note of Parasing Between Differing Versions of Java
+So let's continue see an example of this. 
 
-The raison d'être for the cration of JAXB and JAX-WS was to allow the ability to specify a implimentation independent means of exporting objects through marshalling to XML and then consuming the XML through unmarshalling. E.g. our `com.northpolesouthern.TrainType` is marshalled into the following XML object:
+1.  Change directory to `example-endpoint-definition-profiles`
+    ```bash
+    cd example-endpoint-definition-profiles/
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd example-endpoint-definition-profiles/
+    ```
+> [!NOTE]
+> **TL;DR** This is a toy `pom.xml` demonstrating one way to do this. Specific applications will likely need a different approach.
+2.  Let's examine our `pom.xml`
+    ```bash
+    cat pom.xml 
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cat pom.xml 
+    <project xmlns="http://maven.apache.org/POM/4.0.0" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
 
-```xml
+        <groupId>com.northpolesouthern</groupId>
+        <artifactId>example-endpoint-definition</artifactId>
+        <!-- Maven will dynamically inject the value from the active profile -->
+        <version>${revision}</version>
+
+        <!-- This is now going to be handled within profiles -->
+        <!--<properties>
+            <maven.compiler.source>1.8</maven.compiler.source>
+            <maven.compiler.target>1.8</maven.compiler.target>
+        </properties>-->
+
+    <profiles>
+            <!-- Java 8 (Legacy) -->
+            <profile>
+                <id>java8</id>
+                <activation>
+                    <activeByDefault>true</activeByDefault>
+                </activation>
+                <properties>
+                    <!-- Sets the GAV version for this profile -->
+                    <revision>1.0-SNAPSHOT</revision>
+                    <!-- Sets the java/javac version for this profile -->
+                    <maven.compiler.source>1.8</maven.compiler.source>
+                    <maven.compiler.target>1.8</maven.compiler.target>
+                    <plugin.jaxb.version>2.5.0</plugin.jaxb.version>
+                </properties>
+                <dependencies>
+                    <!-- Javax namespace dependencies -->
+                    <dependency>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                        <version>2.3.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.sun.xml.bind</groupId>
+                        <artifactId>jaxb-impl</artifactId>
+                        <version>2.3.3</version>
+                        <scope>runtime</scope>
+                    </dependency>
+                </dependencies>
+            </profile>
+            <!-- Java 21 (Modernized) -->
+            <profile>
+                <id>java21</id>
+                <properties>
+                    <!-- Sets the GAV version for this profile -->
+                    <revision>2.0-SNAPSHOT</revision>
+                    <!-- Sets the java/javac version for this profile -->
+                    <maven.compiler.source>21</maven.compiler.source>
+                    <maven.compiler.target>21</maven.compiler.target>
+                    <plugin.jaxb.version>4.0.0</plugin.jaxb.version>
+                </properties>
+                <dependencies>
+                    <!-- Jakarta namespace dependencies -->
+                    <dependency>
+                        <groupId>jakarta.xml.bind</groupId>
+                        <artifactId>jakarta.xml.bind-api</artifactId>
+                        <version>4.0.0</version>
+                    </dependency>
+                </dependencies>
+            </profile>
+        </profiles>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>jaxb2-maven-plugin</artifactId>
+                    <version>${plugin.jaxb.version}</version>
+                    <executions>
+                        <execution>
+                            <id>xjc</id>
+                            <goals>
+                                <goal>xjc</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <sources>
+                            <source>src/main/resources/schema</source>
+                        </sources>
+                <outputDirectory>${project.build.directory}/generated-sources/jaxb</outputDirectory>
+                <clearOutputDir>false</clearOutputDir>
+                    </configuration>
+                </plugin>
+                <!-- The Flatten plugin is mandatory when using ${revision}. 
+                It ensures that when this artifact is deployed or installed to your 
+                local repository, the generated pom.xml has the actual hardcoded 
+                version (e.g. "2.0-SNAPSHOT") rather than the literal string "${revision}".-->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.5.0</version>
+                    <executions>
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>flatten.clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <updatePomFile>true</updatePomFile>
+                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </project>
+    ```
+    We're taking advantage of profiles in the Maven `pom.xml` to allow us to build for java 1.8 or java21. It also allows us to specify differing dependencies depening on which version of Java we're building with.
+3.  Make sure we are running java 8.
+    ```bash
+    java -version
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ java -version
+    openjdk version "1.8.0_492"
+    OpenJDK Runtime Environment (build 1.8.0_492-b09)
+    OpenJDK 64-Bit Server VM (build 25.492-b09, mixed mode)
+
+    ```
+4.  Now let's build `com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT` of the dependency. Pass in `-Pjava8` to select our java 8 profile
+    ```bash
+    mvn clean install -Pjava8
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ mvn clean install -Pjava8
+    [INFO] Scanning for projects...
+    [INFO] 
+    [INFO] ---------< com.northpolesouthern:example-endpoint-definition >----------
+    [INFO] Building example-endpoint-definition 1.0-SNAPSHOT
+    [INFO]   from pom.xml
+    [INFO] --------------------------------[ jar ]---------------------------------
+    ...
+    [INFO] 
+    [INFO] --- install:3.1.2:install (default-install) @ example-endpoint-definition ---
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles/.flattened-pom.xml to /home/kfrankli/.m2/repository/com/northpolesouthern/example-endpoint-definition/1.0-SNAPSHOT/example-endpoint-definition-1.0-SNAPSHOT.pom
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles/target/example-endpoint-definition-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/northpolesouthern/example-endpoint-definition/1.0-SNAPSHOT/example-endpoint-definition-1.0-SNAPSHOT.jar
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  1.547 s
+    [INFO] Finished at: 2026-06-30T11:03:09-04:00
+    [INFO] ------------------------------------------------------------------------
+    ```
+5.  So we have successfully built the Java 8 version of `com.northpolesouthern:example-endpoint-definition:1.0-SNAPSHOT`. We can test it again with our `simple-xsd-app-java8` to demonstrate it works
+    ```bash
+    cd ../simple-xsd-app-java8/
+    mvn clean install exec:java
+    cd ../example-endpoint-definition-profiles/ 
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-java8/
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ mvn clean install exec:java
+    [INFO] Scanning for projects...
+    [INFO] 
+    [INFO] ---------------------< com.example:simple-xsd-app >---------------------
+    [INFO] Building simple-xsd-app 1.0-SNAPSHOT
+    [INFO]   from pom.xml
+    [INFO] --------------------------------[ jar ]---------------------------------
+    ...
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-java8/target/simple-xsd-app-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- exec:3.1.0:java (default-cli) @ simple-xsd-app ---
+    --- Marshalling (Java to XML) ---
     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <Train xmlns="http://northpolesouthern.com">
         <id>1045</id>
@@ -376,13 +571,127 @@ The raison d'être for the cration of JAXB and JAX-WS was to allow the ability t
         <destination>Seattle</destination>
         <axles>44</axles>
     </Train>
-```
 
-In fact part of the reason for this is to allow non-java producers and consumters to communicate with Java applications through REST or SOAP by using XML as defined by the XSD. Of course XML has since been supplanted for a variety of good reasons by [JavaScript Object Notation (JSON)](https://www.json.org/) and [YAML Ain't Markup Language (YAML)](https://yaml.org/) objects.
+    --- Unmarshalling (XML to Java) ---
+    Successfully parsed XML back into Java:
+    Train ID : 1045
+    Route    : Chicago -> Seattle
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  1.392 s
+    [INFO] Finished at: 2026-06-30T11:07:40-04:00
+    [INFO] ------------------------------------------------------------------------
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ cd ../example-endpoint-definition-profiles/ 
+    ```
+    So we can see it still works.
+6.  Switch to Java 21 and doublecheck
+    ```bash
+    java -version
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ java -version
+    openjdk version "21.0.2" 2024-01-16
+    OpenJDK Runtime Environment (build 21.0.2+13-58)
+    OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
+    ```
+7.  Now let's build `com.northpolesouthern:example-endpoint-definition:2.0-SNAPSHOT` of the dependency. Pass in `-Pjava21` to select our java 21 profile
+    ```bash
+    mvn clean install -Pjava21
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ mvn clean install -Pjava21
+    [INFO] Scanning for projects...
+    [INFO] 
+    [INFO] ---------< com.northpolesouthern:example-endpoint-definition >----------
+    [INFO] Building example-endpoint-definition 2.0-SNAPSHOT
+    [INFO]   from pom.xml
+    [INFO] --------------------------------[ jar ]---------------------------------
+    ...
+    [INFO] Building jar: /home/kfrankli/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles/target/example-endpoint-definition-2.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- install:3.1.2:install (default-install) @ example-endpoint-definition ---
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles/.flattened-pom.xml to /home/kfrankli/.m2/repository/com/northpolesouthern/example-endpoint-definition/2.0-SNAPSHOT/example-endpoint-definition-2.0-SNAPSHOT.pom
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles/target/example-endpoint-definition-2.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/northpolesouthern/example-endpoint-definition/2.0-SNAPSHOT/example-endpoint-definition-2.0-SNAPSHOT.jar
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  1.503 s
+    [INFO] Finished at: 2026-06-30T11:05:00-04:00
+    [INFO] ------------------------------------------------------------------------
+    ```
+8.  So we have successfully built both versions of the dependency. Let's switch to our new app `simple-xsd-app-naive-migrate-works`
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
+    ```
+8.  The `App.java` is identical to the previous ["Naïve" Migration Attempt](#naïve-migration-attempt). Where it differs is in the `pom.xml`. We are now dependent on version **2.0** of our endpoint, `com.northpolesouthern:example-endpoint-definition:2.0-SNAPSHOT`. 
+    ```bash
+    cat pom.xml 
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cat pom.xml 
+    ...
+            <dependency>
+                <groupId>com.northpolesouthern</groupId>
+                <artifactId>example-endpoint-definition</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+    ...
+    ```
+9.  Now, continuing to use Java 21, we can run the project
+    ```bash
+    mvn clean install exec:java
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ mvn clean install exec:java
+    [INFO] Scanning for projects...
+    [INFO] 
+    [INFO] ---------------------< com.example:simple-xsd-app >---------------------
+    [INFO] Building simple-xsd-app 1.0-SNAPSHOT
+    [INFO]   from pom.xml
+    [INFO] --------------------------------[ jar ]---------------------------------
+    ...
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works/pom.xml to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.pom
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works/target/simple-xsd-app-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- exec:3.1.0:java (default-cli) @ simple-xsd-app ---
+    --- Marshalling (Java to XML) ---
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Train xmlns="http://northpolesouthern.com">
+        <id>1045</id>
+        <origin>Chicago</origin>
+        <destination>Seattle</destination>
+        <axles>44</axles>
+    </Train>
 
-There are some caveats to be noted, if the XSD is poorly formed you may run in to behavioral differences due to flaws in the XSD specfication. The `javax.xml.validation` package is simply an API wrapper. Under the hood, the JDK uses an internal fork of the [Apache Xerces parser](https://xerces.apache.org/).
-
-Between Java 8 and Java 21, that "internal" parser received years of bug fixes, performance tweaks, and specification compliance corrections. If the legacy Java 8 clients have inadvertently relied on a parsing bug, a lenient edge-case, or an unspecified behavior in the older Xerces engine, that behavior might be "fixed" (and thus broken for the specific use case) in Java 21.
+    --- Unmarshalling (XML to Java) ---
+    Successfully parsed XML back into Java:
+    Train ID : 1045
+    Route    : Chicago -> Seattle
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  1.423 s
+    [INFO] Finished at: 2026-06-30T11:14:18-04:00
+    [INFO] ------------------------------------------------------------------------
+    ```
+    And it works! Simple and easy!
+6.  Switch to back to the root of the proejct
+    ```bash
+    cd ..
+    ```
+    Example output:
+    ```bash
+    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cd ..
+    ```
 
 ## Generating the XSD Objects
 
@@ -1130,6 +1439,26 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```bash
     kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cd ..
     ```
+
+## A Note of Parasing Between Differing Versions of Java
+
+The raison d'être for the cration of JAXB and JAX-WS was to allow the ability to specify a implimentation independent means of exporting objects through marshalling to XML and then consuming the XML through unmarshalling. E.g. our `com.northpolesouthern.TrainType` is marshalled into the following XML object:
+
+```xml
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Train xmlns="http://northpolesouthern.com">
+        <id>1045</id>
+        <origin>Chicago</origin>
+        <destination>Seattle</destination>
+        <axles>44</axles>
+    </Train>
+```
+
+In fact part of the reason for this is to allow non-java producers and consumters to communicate with Java applications through REST or SOAP by using XML as defined by the XSD. Of course XML has since been supplanted for a variety of good reasons by [JavaScript Object Notation (JSON)](https://www.json.org/) and [YAML Ain't Markup Language (YAML)](https://yaml.org/) objects.
+
+There are some caveats to be noted, if the XSD is poorly formed you may run in to behavioral differences due to flaws in the XSD specfication. The `javax.xml.validation` package is simply an API wrapper. Under the hood, the JDK uses an internal fork of the [Apache Xerces parser](https://xerces.apache.org/).
+
+Between Java 8 and Java 21, that "internal" parser received years of bug fixes, performance tweaks, and specification compliance corrections. If the legacy Java 8 clients have inadvertently relied on a parsing bug, a lenient edge-case, or an unspecified behavior in the older Xerces engine, that behavior might be "fixed" (and thus broken for the specific use case) in Java 21.
 
 ## Conclusions
 

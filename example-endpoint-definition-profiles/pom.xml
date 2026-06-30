@@ -8,7 +8,7 @@
     <!-- Maven will dynamically inject the value from the active profile -->
     <version>${revision}</version>
 
-    <!-- This isnow going to be handled within profiles -->
+    <!-- This is now going to be handled within profiles -->
     <!--<properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -87,12 +87,10 @@
 		    <clearOutputDir>false</clearOutputDir>
                 </configuration>
             </plugin>
-            <!-- 
-              The Flatten plugin is mandatory when using ${revision}. 
+            <!-- The Flatten plugin is mandatory when using ${revision}. 
               It ensures that when this artifact is deployed or installed to your 
               local repository, the generated pom.xml has the actual hardcoded 
-              version (e.g. "2.0-SNAPSHOT") rather than the literal string "${revision}".
-            -->
+              version (e.g. "2.0-SNAPSHOT") rather than the literal string "${revision}".-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
