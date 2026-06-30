@@ -16,7 +16,7 @@ This repository will use a toy JAXB sample application written in Java 8 to go t
 For following along with these steps, you will need to have at least the following installed:
 
 > [!TIP]
-> Since I often have to switch between Java dististributions/versions, I've found (SDKMAN!)[https://sdkman.io/] a superb tool for managing this toil for me.
+> Since I often have to switch between Java dististributions/versions, I've found [SDKMAN!](https://sdkman.io/) a superb tool for managing this toil for me.
 
 * Java 1.8
 * Java 21+
@@ -36,7 +36,7 @@ So let's test out the process of building and running the application.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd example-endpoint-definition/
+    hal9000:~/jaxb-javax-jakarta-migration$ cd example-endpoint-definition/
     ```
 2.  Double check you're using Java 1.8
     ```bash
@@ -44,7 +44,7 @@ So let's test out the process of building and running the application.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition$ java -version
     openjdk version "1.8.0_492"
     OpenJDK Runtime Environment (build 1.8.0_492-b09)
     OpenJDK 64-Bit Server VM (build 25.492-b09, mixed mode)
@@ -55,7 +55,7 @@ So let's test out the process of building and running the application.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition$ mvn clean install
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition$ mvn clean install
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------< com.northpolesouthern:example-endpoint-definition >----------
@@ -110,7 +110,7 @@ So let's test out the process of building and running the application.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition$ cd ../simple-xsd-app-java8/
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition$ cd ../simple-xsd-app-java8/
     ```
 5.  Now let's build your toy application
     ```bash
@@ -118,7 +118,7 @@ So let's test out the process of building and running the application.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ mvn clean install exec:java
     [INFO] Scanning for projects...
     Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml
     Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml
@@ -184,7 +184,7 @@ So let's test out the process of building and running the application.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ cd ..
     ```
 
 ## "Naïve" Migration Attempt
@@ -201,7 +201,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-naive-migrate/
+    hal9000:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-naive-migrate/
     ```
 2.  Lets first examine our application itself.
     ```bash
@@ -209,7 +209,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cat src/main/java/com/example/App.java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cat src/main/java/com/example/App.java
     package com.example;
 
     // Swap javax to jakarta
@@ -235,7 +235,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cat pom.xml
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cat pom.xml
     ...
         <properties>
             <maven.compiler.source>21</maven.compiler.source>
@@ -271,7 +271,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
     openjdk version "21.0.2" 2024-01-16
     OpenJDK Runtime Environment (build 21.0.2+13-58)
     OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
@@ -282,7 +282,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$  mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$  mvn clean install exec:java
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------------------< com.example:simple-xsd-app >---------------------
@@ -340,7 +340,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ cd ..
     ```
 
 ## Updating the Depedency Library (Strongly Recommended)
@@ -372,7 +372,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd example-endpoint-definition-profiles/
+    hal9000:~/jaxb-javax-jakarta-migration$ cd example-endpoint-definition-profiles/
     ```
 > [!NOTE]
 > **TL;DR** This is a toy `pom.xml` demonstrating one way to do this. Specific applications will likely need a different approach.
@@ -382,7 +382,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cat pom.xml 
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cat pom.xml 
     <project xmlns="http://maven.apache.org/POM/4.0.0" 
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -512,7 +512,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ java -version
     openjdk version "1.8.0_492"
     OpenJDK Runtime Environment (build 1.8.0_492-b09)
     OpenJDK 64-Bit Server VM (build 25.492-b09, mixed mode)
@@ -524,7 +524,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ mvn clean install -Pjava8
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ mvn clean install -Pjava8
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------< com.northpolesouthern:example-endpoint-definition >----------
@@ -551,8 +551,8 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-java8/
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-java8/
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ mvn clean install exec:java
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------------------< com.example:simple-xsd-app >---------------------
@@ -582,7 +582,7 @@ So let's continue see an example of this.
     [INFO] Total time:  1.392 s
     [INFO] Finished at: 2026-06-30T11:07:40-04:00
     [INFO] ------------------------------------------------------------------------
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ cd ../example-endpoint-definition-profiles/ 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-java8$ cd ../example-endpoint-definition-profiles/ 
     ```
     So we can see it still works.
 6.  Switch to Java 21 and doublecheck
@@ -591,7 +591,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ java -version
     openjdk version "21.0.2" 2024-01-16
     OpenJDK Runtime Environment (build 21.0.2+13-58)
     OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
@@ -602,7 +602,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ mvn clean install -Pjava21
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ mvn clean install -Pjava21
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------< com.northpolesouthern:example-endpoint-definition >----------
@@ -624,11 +624,11 @@ So let's continue see an example of this.
     ```
 8.  So we have successfully built both versions of the dependency. Let's switch to our new app `simple-xsd-app-naive-migrate-works`
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
     ```
 8.  The `App.java` is identical to the previous ["Naïve" Migration Attempt](#naïve-migration-attempt). Where it differs is in the `pom.xml`. We are now dependent on version **2.0** of our endpoint, `com.northpolesouthern:example-endpoint-definition:2.0-SNAPSHOT`. 
     ```bash
@@ -636,7 +636,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cat pom.xml 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cat pom.xml 
     ...
             <dependency>
                 <groupId>com.northpolesouthern</groupId>
@@ -651,7 +651,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ mvn clean install exec:java
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------------------< com.example:simple-xsd-app >---------------------
@@ -690,7 +690,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cd ..
     ```
 
 ## Generating the XSD Objects
@@ -722,7 +722,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-regenerate-xsd/
+    hal9000:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-regenerate-xsd/
     ```
 2.  Now change your Java runtime to Java 21 and double check it.
     ```bash
@@ -730,7 +730,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
     openjdk version "21.0.2" 2024-01-16
     OpenJDK Runtime Environment (build 21.0.2+13-58)
     OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
@@ -741,7 +741,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
     34,36d33
     <             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
     < 
@@ -758,7 +758,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ cat pom.xml 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ cat pom.xml 
     <?xml version="1.0" encoding="UTF-8"?>
     <project xmlns="http://maven.apache.org/POM/4.0.0"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -858,7 +858,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ mvn clean install exec:java
     [INFO] Scanning for projects...
     Downloading from central: https://repo.maven.apache.org/maven2/org/jvnet/jaxb/maven-metadata.xml
     Downloaded from central: https://repo.maven.apache.org/maven2/org/jvnet/jaxb/maven-metadata.xml (426 B at 1.8 kB/s)
@@ -929,7 +929,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-regenerate-xsd$ cd ..
     ```
 
 ## Using the Eclipse Transformer Plugin to Transform Bytecode
@@ -962,7 +962,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-eclipse-transformer
+    hal9000:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-eclipse-transformer
     ```
 2.  Now change your Java runtime to Java 21 and double check it.
     ```bash
@@ -970,7 +970,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ java -version
     openjdk version "21.0.2" 2024-01-16
     OpenJDK Runtime Environment (build 21.0.2+13-58)
     OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
@@ -981,7 +981,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ diff src/main/java/com/example/App.java ../simple-xsd-app-naive-migrate/src/main/java/com/example/App.java 
     34,36d33
     <             JAXBElement<com.northpolesouthern.TrainType> trainElement = factory.createTrain(myTrainData);
     < 
@@ -998,7 +998,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ cat pom.xml 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ cat pom.xml 
     ...
         <dependencies>
             <dependency>
@@ -1084,7 +1084,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ mvn clean install exec:java
     [INFO] Scanning for projects...
     Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/transformer/maven-metadata.xml
     Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/transformer/maven-metadata.xml (466 B at 1.4 kB/s)
@@ -1169,7 +1169,7 @@ It's assumed you already ran through [The Application as "Origionally" Written](
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-eclipse-transformer$ cd ..
     ```
 
 ## Running Both Javax.xml and Jakarta.xml in Parallel ("Bridge" Architecture)
@@ -1205,7 +1205,7 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-bridge-arch/
+    hal9000:~/jaxb-javax-jakarta-migration$ cd simple-xsd-app-bridge-arch/
     ```
 2.  Change your Java runtime to Java 21 and double check it.
     ```bash
@@ -1213,7 +1213,7 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate$ java -version
     openjdk version "21.0.2" 2024-01-16
     OpenJDK Runtime Environment (build 21.0.2+13-58)
     OpenJDK 64-Bit Server VM (build 21.0.2+13-58, mixed mode, sharing)
@@ -1224,7 +1224,7 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cat pom.xml 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cat pom.xml 
     ...
         <properties>
             <maven.compiler.source>21</maven.compiler.source>
@@ -1269,7 +1269,7 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cat src/main/java/com/example/App.java 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cat src/main/java/com/example/App.java 
     package com.example;
 
     // Import Jakarta types for your application code logic
@@ -1374,7 +1374,7 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ mvn clean install exec:java
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------------------< com.example:simple-xsd-app >---------------------
@@ -1437,7 +1437,7 @@ Stepping through this it's assumed you already ran through [The Application as "
     ```
     Example output:
     ```bash
-    kfrankli@kfrankli-thinkpadp1gen3:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-bridge-arch$ cd ..
     ```
 
 ## A Note of Parasing Between Differing Versions of Java
