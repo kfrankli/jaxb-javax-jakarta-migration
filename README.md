@@ -699,6 +699,10 @@ So let's continue with an example of a best way, of a single repository generati
 
 ### Two Repos, Two Poms, But a Single Source Repo
 
+![Updating the Depedency Library With Two Repos](./images/simple-xsd-app-update-lib-clone-repo.png)
+
+So let's continue with an alternative example of using two repos, two poms, but the xsd endpoint defintion files only live in one repo. We will do this by having the second repo `git clone` the contents of the first and then rebuild with Java 21 and Jakarta.
+
 1.  Change directory to `example-endpoint-definition-clone-repo`
     ```bash
     cd example-endpoint-definition-clone-repo/
@@ -920,12 +924,6 @@ So let's continue with an example of a best way, of a single repository generati
     ```bash
     dave@hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-clone-repo$ cd ..
     ```
-
-![Updating the Depedency Library With Two Repos](./images/simple-xsd-app-update-lib-clone-repo.png)
-
-So let's continue with an alternative example of using two repos, two poms, but the xsd endpoint defintion files only live in one repo. We will do this by having the second repo `git clone` the contents of the first and then rebuild with Java 21 and Jakarta.
-
-
 
 ## Generating the XSD Objects
 
