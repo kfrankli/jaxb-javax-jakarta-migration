@@ -810,6 +810,9 @@ So let's continue with an alternative example of using two repos, two poms, but 
     </project>
     ```
     We're taking advantage of profiles in the Maven `pom.xml` to allow us to publish a new GAV, `com.northpolesouthern.richmond:our-new-java-21-endpoint-definitions:1.0-SNAPSHOT`, and use a chaining of plugins to first clone the `main` branch of the repo containing `example-endpoint-definition`, copy just the xsd schema, and then build. 
+> [!TIP]
+> Since this is a toy application, it's actually cloning the main branch of itself. It's also not using credentials since this is a public repo. Adding the credential handling is *an excercise left to the reader*.
+
 3.  Make sure we are running java 21.
     ```bash
     java -version
