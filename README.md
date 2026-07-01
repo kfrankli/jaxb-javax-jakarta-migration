@@ -364,7 +364,11 @@ Instead of compiling Java 1.8 code and trying to dynamically rewrite it for Java
 
 Since Java 8 and `javax.xml.*` represent the lowest common denominator, you keep the library's source code exactly as it is. Instead of duplicating the repository or managing parallel branches, you modify the DevSecOps pipeline to generate a second, modernized JAR during the Maven build phase. This work would best resemble the work outline in the `simple-xsd-app-eclipse-transformer` but applied to the `example-endpoint-defition`.
 
-So let's continue see an example of this. 
+### Single Repo, Single pom.xml, Multiple Builds
+
+![Updating the Depedency Library With a Single Pom](./images/simple-xsd-app-update-lib.png)
+
+So let's continue with an example of a best way, of a single repository generating multiple builds.
 
 1.  Change directory to `example-endpoint-definition-profiles`
     ```bash
@@ -692,6 +696,13 @@ So let's continue see an example of this.
     ```bash
     hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-profiles$ cd ..
     ```
+
+### Two Repos, Two Poms, But a Single Source Repo
+
+
+![Updating the Depedency Library With Two Repos](./images/simple-xsd-app-update-lib.png)
+
+So let's continue with an example of a best way, of a single repository generating multiple builds.
 
 ## Generating the XSD Objects
 
