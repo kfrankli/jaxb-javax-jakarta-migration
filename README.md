@@ -700,7 +700,7 @@ So let's continue with an example of a best way, of a single repository generati
 ### Two Repos, Two Poms, But a Single Source Repo
 
 
-![Updating the Depedency Library With Two Repos](./images/simple-xsd-app-update-lib.png)
+![Updating the Depedency Library With Two Repos](./images/simple-xsd-app-update-lib-clone-repo.png)
 
 So let's continue with an example of a best way, of a single repository generating multiple builds.
 
