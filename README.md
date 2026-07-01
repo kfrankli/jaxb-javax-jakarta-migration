@@ -622,13 +622,13 @@ So let's continue see an example of this.
     [INFO] Finished at: 2026-06-30T11:05:00-04:00
     [INFO] ------------------------------------------------------------------------
     ```
-8.  So we have successfully built both versions of the dependency. Let's switch to our new app `simple-xsd-app-naive-migrate-works`
+8.  So we have successfully built both versions of the dependency. Let's switch to our new app `simple-xsd-app-naive-migrate-profiles`
     ```bash
-    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-profiles/
     ```
     Example output:
     ```bash
-    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-works/
+    hal9000:~/jaxb-javax-jakarta-migration/example-endpoint-definition-profiles$ cd ../simple-xsd-app-naive-migrate-profiles/
     ```
 8.  The `App.java` is identical to the previous ["Naïve" Migration Attempt](#naïve-migration-attempt). Where it differs is in the `pom.xml`. We are now dependent on version **2.0** of our endpoint, `com.northpolesouthern:example-endpoint-definition:2.0-SNAPSHOT`. 
     ```bash
@@ -636,7 +636,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cat pom.xml 
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-profiles$ cat pom.xml 
     ...
             <dependency>
                 <groupId>com.northpolesouthern</groupId>
@@ -651,7 +651,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ mvn clean install exec:java
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-profiles$ mvn clean install exec:java
     [INFO] Scanning for projects...
     [INFO] 
     [INFO] ---------------------< com.example:simple-xsd-app >---------------------
@@ -659,8 +659,8 @@ So let's continue see an example of this.
     [INFO]   from pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
     ...
-    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works/pom.xml to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.pom
-    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works/target/simple-xsd-app-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.jar
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-profiles/pom.xml to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.pom
+    [INFO] Installing /home/kfrankli/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-profiles/target/simple-xsd-app-1.0-SNAPSHOT.jar to /home/kfrankli/.m2/repository/com/example/simple-xsd-app/1.0-SNAPSHOT/simple-xsd-app-1.0-SNAPSHOT.jar
     [INFO] 
     [INFO] --- exec:3.1.0:java (default-cli) @ simple-xsd-app ---
     --- Marshalling (Java to XML) ---
@@ -690,7 +690,7 @@ So let's continue see an example of this.
     ```
     Example output:
     ```bash
-    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-works$ cd ..
+    hal9000:~/jaxb-javax-jakarta-migration/simple-xsd-app-naive-migrate-profiles$ cd ..
     ```
 
 ## Generating the XSD Objects
